@@ -19,69 +19,43 @@ const day9Problems = () => {
         this.getVisits = () => this.visits
         this.getAmountOfUniqueVisits = () => Object.entries(this.visits).length
         this.markVisit({position: this.pos}) // mark start position
-    }
+        this.follow = ({headPos}) => {
+            let row = this.pos.row
+            let col = this.pos.col
+            //This is from reddit https://github.com/hariharansubramanian/AdventOfCode-Day9-RopeBridge/blob/master/Models/Knot.cs
 
-    const calculateNewPos = ({tooFarFrom, headPos}) => {
-        switch(tooFarFrom){
-            case 'right':
-                return { ...headPos, col: headPos.col - 1}
-            case 'left':
-                return { ...headPos, col: headPos.col + 1}
-            case 'up':
-                return { ...headPos, row: headPos.row + 1}
-            case 'down':
-                return { ...headPos, row: headPos.row - 1}
+            //Should not move
+            if (Math.abs(headPos.col - col) < 2 && Math.abs(headPos.row - row) < 2) return;
+
+            if (headPos.col == col) //same col
+            {
+                if (headPos.row > row) row++; //down
+                else row--; //up
+            }
+            else if (headPos.row == row) //same row
+            {
+                if (headPos.col > col) col++; //right
+                else col--; //left
+            }
+            else //diagonal
+            {
+                if (headPos.col > col) col++; //right
+                else col--; //left
+    
+                if (headPos.row > row) row++; //down
+                else row--; //up
+            }
+            this.setPos({position: {row, col}})
         }
-    }
-
-    const tooFarFrom = ({headPos, tailPos}) => {
-
-        //     T...
-        //     ..H. 
-        //     ....  return too far right
-
-        if(headPos.col - tailPos.col > 1){
-            return 'right'
-        }
-
-        //     H...
-        //     ..T.  return too far left
-        //     ....
-
-        if(headPos.col - tailPos.col < -1){
-            return 'left'
-        }
-
-        //     T...
-        //     ....  return too far down
-        //     .H..
-
-        if(headPos.row - tailPos.row > 1){
-            return 'down'
-        }
-
-        //     ..H.
-        //     ....  return too far up
-        //     .T..
-
-        if(headPos.row - tailPos.row < -1){
-            return 'up'
-        }
-
-        return null
     }
 
     const followHead = ({relativeHeadPositions, node}) => {
         const tailPositions = []
         relativeHeadPositions.forEach(headPos => {
-            const currentTailPos = node.getPos()
-            const farFrom = tooFarFrom({headPos, tailPos: currentTailPos})
-            const newTailPosition = calculateNewPos({tooFarFrom: farFrom, headPos}) || currentTailPos
-            node.setPos({position: newTailPosition})
-            tailPositions.push(newTailPosition)
+            node.follow({headPos})
+            tailPositions.push(node.getPos())
         })
-
-        return tailPositions
+        return tailPositions.filter((item, pos) => tailPositions.indexOf(item) == pos)
     }
 
     const movesToPositions = ({moves}) => {
@@ -100,9 +74,7 @@ const day9Problems = () => {
     const moveRope = ({rope, input}) => {
         let headPositions = input
         rope.forEach(node => {
-            const tailPositions = followHead({relativeHeadPositions: headPositions, node})
-            headPositions = tailPositions.filter((item, pos) => tailPositions.indexOf(item) == pos)
-            console.log(node.getAmountOfUniqueVisits())
+            headPositions = followHead({relativeHeadPositions: headPositions, node})
         })
     }
 
@@ -127,5 +99,6 @@ const day9Problems = () => {
         new RopeNode(),
     ]
     moveRope({rope, input: headPositions})
+    console.log(rope[8].getVisits())
 }
 day9Problems()
