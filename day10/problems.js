@@ -42,6 +42,30 @@ const day10Problems = () => {
     return sum
   }
 
+  const draw = ({cycleHistory}) => {
+    const height = 6
+    const width = 40
+    const screen = (function (){
+      let arr = new Array(height)
+      for(let i=0; i<height; i++){
+        arr[i] = new Array(width).fill('.')
+      }
+      return arr
+    })()
+    const entries = Object.entries(cycleHistory)
+    for(let i=0; i<height; i++){
+      for(let j=0; j<width; j++){
+        const currentIndex = i*width+j
+        const currentLineIndex = j
+        const spritePosition = entries[currentIndex][1]
+        if(currentLineIndex >= spritePosition -1 && currentLineIndex <= spritePosition + 1){
+          screen[i][j] = '#'
+        }
+      }
+    }
+    return screen
+  }
+
   const cyclesToAnalyze = ({base, every, cycleHistory}) => {
     const cycles = [base]
     const cycleEntries = Object.entries(cycleHistory)
@@ -50,7 +74,6 @@ const day10Problems = () => {
     while(cycles[cycles.length - 1] + every < length){
       cycles.push(cycles[cycles.length - 1] + every)
     }
-
     return cycles
   }
 
@@ -67,7 +90,9 @@ const day10Problems = () => {
   const cpu = new CPU({instructions})
   cpu.execute()
   const cycles = cyclesToAnalyze({base: 20, every: 40, cycleHistory: cpu.getCycleHistory()})
-  const result = sumOfSignalStrengths({lookUpCycles: cycles, cycleHistory: cpu.getCycleHistory()})
-  console.log(result)
+  const part1Result = sumOfSignalStrengths({lookUpCycles: cycles, cycleHistory: cpu.getCycleHistory()})
+  console.log(part1Result)
+  const part2Result = draw({cycleHistory: cpu.getCycleHistory()})
+  console.log(part2Result)
 }
 day10Problems()
